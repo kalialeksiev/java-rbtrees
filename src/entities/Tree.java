@@ -63,7 +63,7 @@ public class Tree<T extends Comparable<T>> {
             Node<T> newR = new Node<T>(x, Color.RED);
             newR.parent = t;
             t.right = newR;
-            safeFix(newR);
+            fixInsert(newR);
 
         }
 
@@ -72,31 +72,324 @@ public class Tree<T extends Comparable<T>> {
             Node<T> newL = new Node<T>(x, Color.RED);
             newL.parent = t;
             t.left = newL;
-            safeFix(newL);
+            fixInsert(newL);
 
         }
 
     }
 
-    public void delete(T x) {
+    public void delete(T x) throws Exception {
+
+        Node<T> t = root;
+
+        if (t == null) {
+            return;
+        }
+
+        /**
+         * search for x in tree
+         */
+        while(x.compareTo(t.value) != 0) {
+            if (x.compareTo(t.value) > 0) {
+                if (t.right != null) {
+                    t = t.right;
+                } else {
+                    break;
+                }
+            } else {
+                if (t.left != null) {
+                    t = t.left;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        if (x.compareTo(t.value) != 0) {
+            return;
+        }
+
+        /**
+         * if deleting root, trivially delete
+         */
+        if (t.right == null && t.left == null) {
+            Node<T> par = t.parent;
+
+            if (par == null) {
+                root = null;
+                return;
+            }
+
+            if (par.right == t) {
+                par.right = null;
+            } else {
+                par.left = null;
+            }
+            if(t.color == Color.BLACK) {
+                fixDelete(null, par);
+            }
+        }
+
+        else if (t.right == null) {
+
+            Node<T> par = t.parent;
+
+            if (par == null) {
+                root = t.left;
+                fixDelete(root, null);
+                return;
+            }
+
+            if (par.right == t) {
+                par.right = t.left;
+            } else {
+                par.left = t.left;
+            }
+            t.left.parent = par;
+            if(t.color == Color.BLACK) {
+                fixDelete(t.left, par);
+            }
+        }
+
+        else {
+
+            Node<T> succ = t.right;
+
+            while(succ.left != null) {
+                succ = succ.left;
+            }
+
+            t.value = succ.value;
+
+            Node<T> par = succ.parent;
+
+            if (par.left == succ) {
+                par.left = succ.right;
+            } else {
+                par.right = succ.right;
+            }
+
+            if (succ.right != null) {
+                succ.right.parent = par;
+            }
+
+            if (succ.color == Color.BLACK) {
+                fixDelete(succ.right, par);
+            }
+
+        }
 
     }
 
-//    public T successor(T x) {
-//
-//    }
-//
-//    public T predecessor(T x) {
-//
-//    }
-//
-//    public T max() {
-//
-//    }
-//
-//    public T min() {
-//
-//    }
+    public T successor(T x) {
+
+        Node<T> t = root;
+
+        if (t == null) {
+            return null;
+        }
+
+        /**
+         * search for x in the tree
+         */
+        while(x.compareTo(t.value) != 0) {
+            if (x.compareTo(t.value) > 0) {
+                if (t.right != null) {
+                    t = t.right;
+                } else {
+                    break;
+                }
+            } else {
+                if (t.left != null) {
+                    t = t.left;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        /**
+         * if x is not present in the tree, return null
+         */
+
+        if (x.compareTo(t.value) != 0) {
+            return null;
+        }
+
+        /**
+         * case 1, where x has a right child
+         */
+        if (t.right != null) {
+            Node<T> rightBranch = t.right;
+
+            while (rightBranch.left != null) {
+                rightBranch = rightBranch.left;
+            }
+
+            return rightBranch.value;
+        }
+
+        Node<T> parentX = t.parent;
+
+        /**
+         * if x happens to be the root with no right subtree, return null
+         */
+        if (parentX == null) {
+            return null;
+        }
+
+        /**
+         * case 2, where x is the left child of its parent
+         */
+        else if (parentX.left == t) {
+            return parentX.value;
+        }
+
+        /**
+         * case 3 if x is the right child of its parent go up
+         * and look for the first right turn
+         */
+        else {
+            while (parentX!= null && parentX.right == t) {
+                t = parentX;
+                parentX = t.parent;
+            }
+
+            /**
+             * if x was the maximum, i.e. just right pointers
+             * from the root, we output null, i.e. no successor
+             */
+            if (parentX == null) {
+                return null;
+            }
+
+            else {
+                return parentX.value;
+            }
+        }
+    }
+
+    public T predecessor(T x) {
+
+        Node<T> t = root;
+
+        if (t == null) {
+            return null;
+        }
+
+        /**
+         * search for x in the tree
+         */
+        while(x.compareTo(t.value) != 0) {
+            if (x.compareTo(t.value) > 0) {
+
+                if (t.right != null) {
+                    t = t.right;
+                } else {
+                    break;
+                }
+
+            } else {
+
+                if (t.left != null) {
+                    t = t.left;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        /**
+         * if x is not in the tree, return null
+         */
+        if (x.compareTo(t.value) != 0) {
+            return null;
+        }
+
+        /**
+         * case 1 where x has a left child
+         */
+        if (t.left != null) {
+            Node<T> leftBranch = t.left;
+
+            while(leftBranch.right != null) {
+                leftBranch = leftBranch.right;
+            }
+
+            return leftBranch.value;
+        }
+
+        Node<T> parentX = t.parent;
+
+        /**
+         * if x is the root with no left subtree, return null
+         */
+        if (parentX == null) {
+            return null;
+        }
+
+        /**
+         * case 2 where x is the right child of its parent
+         */
+        else if (parentX.right == t) {
+            return parentX.value;
+        }
+
+        /**
+         * case 3 where x is the left child of its parent, so we
+         * follow the parent pointers until we get the first left turn
+         */
+        else {
+
+            while(parentX != null && parentX.left == t) {
+                t = parentX;
+                parentX = t.parent;
+            }
+
+            /**
+             * x is the min element, i.e. we've reached the root
+             * from x by following parent pointers with only left children,
+             * so x doesn't have a predecessor
+             */
+            if (parentX == null) {
+                return null;
+            }
+
+            else {
+                return parentX.value;
+            }
+        }
+    }
+
+    public T max() {
+
+        Node<T> t = root;
+
+        if (t == null) {
+            return null;
+        }
+
+        while(t.right != null) {
+            t = t.right;
+        }
+
+        return t.value;
+    }
+
+    public T min() {
+
+        Node<T> t = root;
+
+        if (t == null) {
+            return null;
+        }
+
+        while(t.left != null) {
+            t = t.left;
+        }
+
+        return t.value;
+    }
 
     public void print() {
        Queue<Node<T>> vertexQueue = new LinkedList<Node<T>>();
@@ -118,14 +411,13 @@ public class Tree<T extends Comparable<T>> {
 
 
     /** Restore red-black tree properties, assuming
-     *  they are violated because violate and violate.parent
-     *  are both red
+     *  they are violated after insertion
      *
      *  This method performs error checking to see if it's called
      *  with the right configuration although this is perhaps not
      *  necessary given that the method is private
      */
-    private void safeFix(Node<T> violate) throws Exception {
+    private void fixInsert(Node<T> violate) throws Exception {
 
         if (violate == null) {
             return;
@@ -211,6 +503,150 @@ public class Tree<T extends Comparable<T>> {
         } // end of while
 
         if (violate == root) {
+            violate.color = Color.BLACK;
+        }
+    }
+
+    /**
+     * Restore red-black tree properties, assuming
+     * they are violated after deletion
+     */
+
+    public void fixDelete(Node<T> violate, Node<T> parent) throws Exception {
+
+        /**
+         * 2 cases of whether the violating node is a null leaf or not
+         */
+
+        while( (violate != null && violate != root && violate.color == Color.BLACK)
+                || (violate == null && parent != null)) {
+
+            /**
+             * this expeception means there's something wrong with the configuration of the tree
+             */
+            if (parent == null) {
+                throw new Exception("Error: Wrong tree configuration, invariants broken.");
+            }
+
+            if (parent.left == violate) {
+                Node<T> sibling = parent.right;
+
+                /**
+                 * if sibling is null, the invariants of the tree have been violated
+                 */
+                if (sibling == null) {
+                    throw new Exception("Error: Wrong tree configuration, invariants broken.");
+                }
+
+                /**
+                 * case 1 in Introduction to Algorithms book, i.e. sibling is red
+                 */
+                if (sibling.color == Color.RED) {
+                    sibling.color = Color.BLACK;
+                    parent.color = Color.RED;
+                    leftRotate(parent);
+                }
+
+                /**
+                 * case 2, i.e. sibling is black with both of its children black
+                 */
+                else if ( (sibling.right == null || sibling.right.color == Color.BLACK)
+                        && (sibling.left == null || sibling.left.color == Color.BLACK) ) {
+                    sibling.color = Color.RED;
+                    violate = parent;
+                    parent = violate.parent;
+                }
+
+                /**
+                 * case 3, i.e. sibling is black, sibling's left child is black and
+                 * its right child is black
+                 */
+                else if (sibling.right == null || sibling.right.color == Color.BLACK) {
+                    sibling.color = Color.RED;
+                    sibling.left.color = Color.BLACK;
+                    rightRotate(sibling);
+                }
+
+                /**
+                 * case 3, i.e. sibling is black and sibling's right child is red
+                 */
+
+                else {
+                    sibling.color = parent.color;
+                    sibling.right.color = Color.BLACK;
+                    parent.color = Color.BLACK;
+                    leftRotate(parent);
+                    violate = root;
+                    parent = null;
+                }
+
+            }
+
+            /**
+             * repeat as before with left and right interchanged
+             */
+            else {
+
+                Node<T> sibling = parent.left;
+
+                /**
+                 * if sibling is null, the invariants of the tree have been violated
+                 */
+                if (sibling == null) {
+                    throw new Exception("Error: Wrong tree configuration, invariants broken.");
+                }
+
+                /**
+                 * case 1 in Introduction to Algorithms book, i.e. sibling is red
+                 */
+                if (sibling.color == Color.RED) {
+                    sibling.color = Color.BLACK;
+                    parent.color = Color.RED;
+                    rightRotate(parent);
+                }
+
+                /**
+                 * case 2, i.e. sibling is black with both of its children black
+                 */
+                else if ( (sibling.left == null || sibling.left.color == Color.BLACK)
+                        && (sibling.right == null || sibling.right.color == Color.BLACK) ) {
+                    sibling.color = Color.RED;
+                    violate = parent;
+                    parent = violate.parent;
+                }
+
+                /**
+                 * case 3, i.e. sibling is black, sibling's right child is black and
+                 * its left child is black
+                 */
+                else if (sibling.left == null || sibling.left.color == Color.BLACK) {
+                    sibling.color = Color.RED;
+                    sibling.right.color = Color.BLACK;
+                    leftRotate(sibling);
+                }
+
+                /**
+                 * case 3, i.e. sibling is black and sibling's left child is red
+                 */
+
+                else {
+                    sibling.color = parent.color;
+                    sibling.left.color = Color.BLACK;
+                    parent.color = Color.BLACK;
+                    rightRotate(parent);
+                    violate = root;
+                    parent = null;
+                }
+
+            }
+
+        }
+
+        if (violate == null) {
+            return;
+        }
+
+        else {
             violate.color = Color.BLACK;
         }
     }

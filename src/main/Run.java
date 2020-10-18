@@ -12,12 +12,27 @@ public class Run {
         testTree.insert(40);
         testTree.insert(45);
         testTree.insert(37);
-
         testTree.print();
 
         System.out.println();
         System.out.println("-----------------------");
         System.out.println();
+
+        System.out.println(testTree.successor(55));
+
+        System.out.println();
+        System.out.println("-----------------------");
+        System.out.println();
+
+        System.out.println(testTree.min());
+
+        System.out.println();
+        System.out.println("-----------------------");
+        System.out.println();
+
+        testTree.delete(34);
+        testTree.print();
+
 
 
 
